@@ -13,11 +13,13 @@ namespace GraduaMetro
         [SerializeField] private MetronomePlayer player;
 
         [Header("信息")]
+        [SerializeField] private TMP_Text songNameText;
         [SerializeField] private TMP_Text measureText;
         [SerializeField] private TMP_Text bpmText;
         [SerializeField] private TMP_Text beatsText;
         [SerializeField] private TMP_Text accentText;
         [SerializeField] private TMP_Text subdivisionText;
+        [SerializeField] private TMP_Text speedText;
 
         [Header("时间轴")]
         [SerializeField] private RectTransform timelineContent;
@@ -71,11 +73,18 @@ namespace GraduaMetro
         {
             song = s;
             speedMultiplier = multiplier;
+            if (songNameText != null) songNameText.text = s.name;
+            if (speedText != null) speedText.text = FormatMultiplier(multiplier);
             SongSimulator.Resolve(song, out states, out _);
             SongTiming.BuildMeasureTimes(states, speedMultiplier, out startTimes, out totalTime);
 
             BuildTimeline();
             ResetIndicators();
+
+            // 倒计时开始前先填好基础信息（第 1 小节的属性）
+            if (states.Count > 0)
+                RefreshBeatInfo(1, states[0].bpm, states[0].beats, states[0].accent, states[0].subdivision);
+
             player.Prepare(song, speedMultiplier, countdown);
             player.Play();
         }
@@ -104,13 +113,18 @@ namespace GraduaMetro
 
         private void OnBeat(BeatInfo info)
         {
-            if (measureText != null) measureText.text = $"{info.measure}/{song.measureCount}";
-            if (bpmText != null) bpmText.text = $"{info.bpm} bpm";
-            if (beatsText != null) beatsText.text = $"拍数 {info.beatCount}";
-            if (accentText != null) accentText.text = $"强弱拍 {Constants.AccentModeNames[(int)info.accent]}";
-            if (subdivisionText != null) subdivisionText.text = $"细分 {info.subdivisionCount}";
+            RefreshBeatInfo(info.measure, info.bpm, info.beatCount, info.accent, info.subdivisionCount);
             UpdatePlayhead(info);
             UpdateProgress(info);
+        }
+
+        private void RefreshBeatInfo(int measure, int bpm, int beats, AccentMode accent, int subdivision)
+        {
+            if (measureText != null) measureText.text = $"{measure}/{song.measureCount}";
+            if (bpmText != null) bpmText.text = $"{bpm} bpm";
+            if (beatsText != null) beatsText.text = $"每小节 {beats} 拍";
+            if (accentText != null) accentText.text = $"{Constants.AccentModeNames[(int)accent]}";
+            if (subdivisionText != null) subdivisionText.text = $"每拍 {subdivision} 次";
         }
 
         private void UpdatePlayhead(BeatInfo info)
@@ -160,6 +174,9 @@ namespace GraduaMetro
             var s = rt.localScale;
             rt.localScale = new Vector3(x, s.y, s.z);
         }
+
+        private static string FormatMultiplier(float m) =>
+            m % 1f == 0f ? $"×{m:0}" : $"×{m:0.##}";
 
         private void OnPauseToggle()
         {

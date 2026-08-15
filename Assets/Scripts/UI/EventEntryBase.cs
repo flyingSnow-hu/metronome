@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -53,6 +54,23 @@ namespace GraduaMetro
             BuildUI();
             if (deleteButton != null)
                 deleteButton.onClick.AddListener(() => RequestDelete?.Invoke(this));
+            StartCoroutine(CoResizeSelf());
+        }
+
+        // 延迟一帧，等 content 布局稳定后，只把本体高度设为 content 的高度（宽度保持不变）
+        private IEnumerator CoResizeSelf()
+        {
+            yield return null;
+
+            var contentRect = content as RectTransform;
+            var rt = transform as RectTransform;
+            if (contentRect == null || rt == null)
+                yield break;
+
+            LayoutRebuilder.ForceRebuildLayoutImmediate(contentRect);
+
+            var size = rt.sizeDelta;
+            rt.sizeDelta = new Vector2(size.x, contentRect.rect.height);
         }
 
         public void Bind(SongEvent e)
@@ -104,9 +122,13 @@ namespace GraduaMetro
                 {
                     if (string.IsNullOrEmpty(seg.text) || textPrefab == null)
                         continue;
-                    var txt = Instantiate(textPrefab, content).GetComponentInChildren<TMP_Text>(true);
-                    if (txt != null)
-                        txt.text = seg.text;
+                    // 为了在流式布局里能按字符换行，每个字符单独一个 TMP_Text
+                    foreach (char c in seg.text)
+                    {
+                        var txt = Instantiate(textPrefab, content).GetComponentInChildren<TMP_Text>(true);
+                        if (txt != null)
+                            txt.text = c.ToString();
+                    }
                 }
                 else
                 {

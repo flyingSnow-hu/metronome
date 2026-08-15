@@ -74,13 +74,21 @@ namespace GraduaMetro
             SetState(PlaybackState.Idle);
         }
 
-        /// <summary>开始播放（含倒计时）。</summary>
+        /// <summary>开始播放（倒计时为“无”时直接开始，否则先走倒计时）。</summary>
         public void Play()
         {
             StopRunning();
             nextClickIndex = 0;
-            SetState(PlaybackState.Countdown);
-            coroutine = StartCoroutine(Run());
+
+            if (countdownBeats > 0 && countdownClip != null)
+            {
+                SetState(PlaybackState.Countdown);
+                coroutine = StartCoroutine(Run());
+            }
+            else
+            {
+                coroutine = StartCoroutine(RunClicks(Time.realtimeSinceStartup));
+            }
         }
 
         /// <summary>从头重播（跳过倒计时）。</summary>

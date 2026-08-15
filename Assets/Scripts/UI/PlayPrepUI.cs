@@ -35,7 +35,7 @@ namespace GraduaMetro
             if (songNameText != null)
                 songNameText.text = s.name;
 
-            countdownDropdown.value = 0;
+            countdownDropdown.value = IndexOf(Constants.CountdownOptions, Constants.DefaultCountdown);
             speedMultiplierDropdown.value = IndexOf(Constants.SpeedMultipliers, Constants.DefaultSpeedMultiplier);
         }
 
@@ -43,7 +43,7 @@ namespace GraduaMetro
         {
             var opts = new List<string>();
             foreach (var c in Constants.CountdownOptions)
-                opts.Add(c == 0 ? "无" : $"{c} 拍");
+                opts.Add(c == 0 ? "无" : $"{c} 秒");
             countdownDropdown.ClearOptions();
             countdownDropdown.AddOptions(opts);
         }
@@ -52,7 +52,7 @@ namespace GraduaMetro
         {
             var opts = new List<string>();
             foreach (var m in Constants.SpeedMultipliers)
-                opts.Add(m % 1f == 0f ? $"{m:0}x" : $"{m:0.##}x");
+                opts.Add(m % 1f == 0f ? $"×{m:0}" : $"×{m:0.##}");
             speedMultiplierDropdown.ClearOptions();
             speedMultiplierDropdown.AddOptions(opts);
         }
@@ -70,6 +70,14 @@ namespace GraduaMetro
         {
             for (int i = 0; i < arr.Length; i++)
                 if (Mathf.Approximately(arr[i], value))
+                    return i;
+            return 0;
+        }
+
+        private static int IndexOf(int[] arr, int value)
+        {
+            for (int i = 0; i < arr.Length; i++)
+                if (arr[i] == value)
                     return i;
             return 0;
         }

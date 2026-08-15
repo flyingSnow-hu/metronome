@@ -80,13 +80,14 @@ namespace GraduaMetro
                 return;
 
             EventType type = (EventType)(value - 1);
-            song.events.Add(CreateDefaultEvent(type));
+            var e = CreateDefaultEvent(type);
+            song.events.Add(e);
 
             ignoreAddDropdown = true;
             addEventDropdown.value = 0;
             ignoreAddDropdown = false;
 
-            RebuildEventList();
+            AddEntry(e);
         }
 
         private SongEvent CreateDefaultEvent(EventType type)
@@ -117,26 +118,40 @@ namespace GraduaMetro
                 Destroy(child.gameObject);
             entries.Clear();
 
-            song.events.Sort((a, b) =>
-                a.measure != b.measure ? a.measure.CompareTo(b.measure) : a.type.CompareTo(b.type));
+            SortEvents();
 
             foreach (var e in song.events)
+                AddEntry(e);
+        }
+
+        private void AddEntry(SongEvent e)
+        {
+            if ((int)e.type < 0 || (int)e.type >= eventEntryPrefabs.Length)
+                return;
+
+            var go = Instantiate(eventEntryPrefabs[(int)e.type], eventListContent);
+            var entry = go.GetComponent<EventEntryBase>();
+            if (entry == null)
             {
-                if ((int)e.type < 0 || (int)e.type >= eventEntryPrefabs.Length)
-                    continue;
-
-                var go = Instantiate(eventEntryPrefabs[(int)e.type], eventListContent);
-                var entry = go.GetComponent<EventEntryBase>();
-                if (entry == null)
-                {
-                    Destroy(go);
-                    continue;
-                }
-
-                entry.RequestDelete += OnEntryDelete;
-                entry.Bind(e);
-                entries.Add(entry);
+                Destroy(go);
+                return;
             }
+
+            entry.RequestDelete += OnEntryDelete;
+            entry.Bind(e);
+            entries.Add(entry);
+        }
+
+        private void SortEvents()
+        {
+            song.events.Sort((a, b) =>
+                a.measure != b.measure ? a.measure.CompareTo(b.measure) : a.type.CompareTo(b.type));
+        }
+
+        private void CommitAllEntries()
+        {
+            foreach (var entry in entries)
+                entry.Commit();
         }
 
         private void OnEntryDelete(EventEntryBase entry)
@@ -144,7 +159,8 @@ namespace GraduaMetro
             if (entry.EventData == null)
                 return;
             song.events.Remove(entry.EventData);
-            RebuildEventList();
+            entries.Remove(entry);
+            Destroy(entry.gameObject);
         }
 
         // ---------- 保存 / 删除 / 返回 ----------
@@ -157,8 +173,8 @@ namespace GraduaMetro
                 return;
             }
 
-            foreach (var entry in entries)
-                entry.Commit();
+            CommitAllEntries();
+            SortEvents();
 
             if (!SongValidator.Validate(song, out var errors, out _))
             {

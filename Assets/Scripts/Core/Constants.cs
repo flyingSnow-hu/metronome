@@ -27,9 +27,9 @@ namespace GraduaMetro
         public static readonly float[] SpeedMultipliers = { 0.25f, 0.5f, 1f, 2f, 4f };
         public const float DefaultSpeedMultiplier = 1f;
 
-        // 倒计时（单位：拍）
-        public static readonly int[] CountdownOptions = { 0, 1, 2, 3, 4, 5, 6, 7,8 };
-        public const int DefaultCountdown = 0;
+        // 倒计时（单位：秒）
+        public static readonly int[] CountdownOptions = { 0, 1, 2, 3, 4, 5, 6, 7, 8 };
+        public const int DefaultCountdown = 3;
 
         // 持久化
         public const string SaveFileName = "songs.json";

@@ -24,16 +24,7 @@ public class FlowLayoutGroup : LayoutGroup
 
     public override void CalculateLayoutInputVertical()
     {
-        // 精确高度需要在知道实际行宽后算，这里给个估算值；
-        // 若容器宽度固定，可在这里按实际宽度模拟换行得到准确高度。
-        float h = padding.vertical;
-        float rowH = 0f;
-        foreach (RectTransform child in rectChildren)
-        {
-            if (!child.gameObject.activeSelf) continue;
-            rowH = Mathf.Max(rowH, LayoutUtility.GetPreferredHeight(child));
-        }
-        h += rowH + lineSpacing;
+        float h = ComputeHeight(rectTransform.rect.width, false);
         SetLayoutInputForAxis(h, h, -1, 1);
     }
 
@@ -41,17 +32,27 @@ public class FlowLayoutGroup : LayoutGroup
 
     public override void SetLayoutVertical()
     {
+        ComputeHeight(rectTransform.rect.width, true);
+    }
+
+    // 按容器宽度模拟换行；apply 为 true 时同时摆放子项。只设置位置，不修改子元素尺寸。
+    private float ComputeHeight(float width, bool apply)
+    {
+        if (width <= 0f || rectChildren.Count == 0)
+            return padding.vertical;
+
+        float limit = width - padding.right;
         float x = padding.left;
         float y = padding.top;
         float rowH = 0f;
-        float limit = rectTransform.rect.width - padding.right;
 
         foreach (RectTransform child in rectChildren)
         {
             if (!child.gameObject.activeSelf) continue;
 
-            float w = LayoutUtility.GetPreferredWidth(child);
-            float h = LayoutUtility.GetPreferredHeight(child);
+            // 使用子元素自身尺寸，布局不改动它们
+            float w = child.rect.width;
+            float h = child.rect.height;
 
             // 放不下就换行
             if (x + w > limit && x > padding.left)
@@ -61,11 +62,25 @@ public class FlowLayoutGroup : LayoutGroup
                 rowH = 0f;
             }
 
-            SetChildAlongAxis(child, 0, x, w);
-            SetChildAlongAxis(child, 1, y, h);
+            if (apply)
+                PositionChild(child, x, y, w, h);
 
             x += w + spacing;
             rowH = Mathf.Max(rowH, h);
         }
+        return y + rowH + padding.bottom;
+    }
+
+    // 只设置位置（左上角锚定），不改子元素尺寸
+    private void PositionChild(RectTransform child, float x, float y, float w, float h)
+    {
+        var min = child.anchorMin;
+        var max = child.anchorMax;
+        min.x = 0f; max.x = 0f;
+        min.y = 1f; max.y = 1f;
+        child.anchorMin = min;
+        child.anchorMax = max;
+
+        child.anchoredPosition = new Vector2(x + w * child.pivot.x, -(y + h * child.pivot.y));
     }
 }
