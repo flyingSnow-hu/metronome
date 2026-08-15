@@ -1,0 +1,54 @@
+# ============ Unity 生成目录 ============
+/[Ll]ibrary/
+/[Tt]emp/
+/[Oo]bj/
+/[Bb]uild/
+/[Bb]uilds/
+/[Ll]ogs/
+/[Uu]ser[Ss]ettings/
+
+# 内存/录像等可能很大的目录
+/[Mm]emoryCaptures/
+/[Rr]ecordings/
+
+# ============ IDE / 编辑器 ============
+/.vs/
+/.vscode/
+/.idea/
+/.gradle/
+
+# Unity 自动生成的解决方案与工程文件
+ExportedObj/
+.consulo/
+*.csproj
+*.unityproj
+*.sln
+*.suo
+*.tmp
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+
+# Unity3D 生成的 meta（仅程序数据库相关）
+*.pidb.meta
+*.pdb.meta
+*.mdb.meta
+
+# 崩溃报告
+sysinfo.txt
+
+# ============ 构建产物 ============
+*.apk
+*.aab
+*.unitypackage
+*.app
+
+# ============ 系统文件 ============
+.DS_Store
+Thumbs.db
